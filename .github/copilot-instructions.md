@@ -20,6 +20,42 @@
 - Commits: **Conventional Commits** format.
 - Tests: focus on ISBN validation/normalization, provider parsing, dedupe logic.
 
+## Versioning
+
+The `VERSION` file at the repository root contains the current version in the format:
+
+```
+major.minor.revision+build
+```
+
+**Increment rules (MANDATORY for every change):**
+
+| Change type | What to increment | Example |
+|---|---|---|
+| Any change | **build** +1 | `1.2.3+4` -> `1.2.3+5` |
+| Bug fix, error correction | **revision** +1, **build** +1 | `1.2.3+5` -> `1.2.4+6` |
+| New feature or functionality | **minor** +1, **build** +1, reset revision | `1.2.4+1` -> `1.3.0+2` |
+| Breaking change, rewrite | **major** +1, **build** +1, reset minor and revision | `1.3.0+1` -> `2.0.0+2` |
+
+**Procedure:** for every code change, BEFORE finishing the work:
+1. Determine the most significant type of change performed
+2. Update the `VERSION` file according to the rules above
+3. Add an entry at the top of `CHANGELOG.md` using the format `## [x.y.z+n] - YYYY-MM-DD` and the subsections `### Added`, `### Fixed`, `### Improved`
+4. Always increment build, even when bumping revision/minor/major (build starts at 1)
+
+
+**CHANGELOG.md entry format:**
+```markdown
+## [0.15.0+53] - 2026-04-07
+### Added
+- Description of the new feature
+### Fixed
+- Description of the bug fix
+### Improved
+- Description of the improvement/refactor
+```
+Use only subsections that contain entries. Omit unused sections.
+
 ## Key Files
 
 | Purpose               | Path                                      |

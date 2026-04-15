@@ -1,11 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Scanner from '../components/Scanner';
 import { getBookByIsbn } from '../api/client';
 import type { Book } from '../types';
 
 export default function ScanPage() {
-  const navigate = useNavigate();
   const [scanning, setScanning] = useState(true);
   const [error, setError] = useState('');
   const [result, setResult] = useState<{ found: boolean; book?: Book; isbn?: string } | null>(null);

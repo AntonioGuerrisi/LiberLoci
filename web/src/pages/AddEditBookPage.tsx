@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createBook, getBook, getLocations, lookupIsbn, updateBook, uploadCover } from '../api/client';
 import type { Book, BookCreate, Location } from '../types';
