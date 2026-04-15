@@ -31,9 +31,13 @@ services:
       context: ./web
     ports:
       - "3000:80"
+      - "3443:443"
+    volumes:
+      - certs:/etc/nginx/certs
     depends_on:
       api:
         condition: service_started
 
 volumes:
   pgdata:
+  certs:

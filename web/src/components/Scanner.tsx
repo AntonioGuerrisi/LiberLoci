@@ -34,7 +34,10 @@ export default function Scanner({ onScan, onError }: ScannerProps) {
       );
       setIsRunning(true);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Camera access denied';
+      let msg = err instanceof Error ? err.message : 'Camera access denied';
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        msg = 'Camera requires HTTPS. Please access this page via https:// to enable barcode scanning.';
+      }
       onError?.(msg);
     }
   }, [onScan, onError]);
