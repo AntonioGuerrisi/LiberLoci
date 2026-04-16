@@ -39,6 +39,10 @@ export interface BookDraft {
   provider: string | null;
 }
 
+export interface ISBNLookupResponse {
+  drafts: BookDraft[];
+}
+
 export interface BookCreate {
   title: string;
   authors: string;

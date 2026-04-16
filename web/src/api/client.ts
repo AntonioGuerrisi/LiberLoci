@@ -1,4 +1,4 @@
-import type { Book, BookCreate, BookDraft, Location, LocationCreate } from '../types';
+import type { Book, BookCreate, BookDraft, ISBNLookupResponse, Location, LocationCreate } from '../types';
 
 const BASE = '/api';
 
@@ -51,9 +51,16 @@ export const uploadCover = (bookId: number, file: File) => {
   });
 };
 
+export const uploadCoverFromUrl = (bookId: number, url: string) =>
+  request<void>(`${BASE}/books/${bookId}/cover-from-url`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+
 // ISBN lookup
 export const lookupIsbn = (isbn: string) =>
-  request<BookDraft>(`${BASE}/isbn/lookup`, {
+  request<ISBNLookupResponse>(`${BASE}/isbn/lookup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ isbn }),
@@ -69,6 +76,16 @@ export const createLocation = (data: LocationCreate) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
+
+export const updateLocation = (id: number, data: Partial<LocationCreate>) =>
+  request<Location>(`${BASE}/locations/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+export const deleteLocation = (id: number) =>
+  request<void>(`${BASE}/locations/${id}`, { method: 'DELETE' });
 
 // Tags
 export const getTags = () =>

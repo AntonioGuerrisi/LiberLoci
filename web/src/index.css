@@ -454,6 +454,36 @@ a:hover {
   }
 }
 
+.lookup-cover-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lookup-cover-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  width: 140px;
+  align-items: flex-start;
+  background: var(--bg-card);
+}
+
+.lookup-cover-item input {
+  margin-right: 8px;
+}
+
+.lookup-cover-preview {
+  width: 100%;
+  height: 160px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+}
+
 /* ===== Book Detail ===== */
 .book-detail {
   display: flex;
@@ -619,4 +649,55 @@ a:hover {
 .theme-toggle:hover {
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+/* ===== Settings ===== */
+.settings-form {
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.settings-table th,
+.settings-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.settings-table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-table tr:last-child td {
+  border-bottom: none;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: 1px solid var(--danger);
+}
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.mb-12 {
+  margin-bottom: 12px;
 }

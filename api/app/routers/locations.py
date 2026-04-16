@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Location
+from app.models import Book, Location
 from app.schemas import LocationCreate, LocationResponse
 
 router = APIRouter(prefix="/api/locations", tags=["locations"])
@@ -48,5 +48,7 @@ def delete_location(location_id: int, db: Session = Depends(get_db)):
     location = db.get(Location, location_id)
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
+    # Unlink books referencing this location
+    db.query(Book).filter(Book.location_id == location_id).update({"location_id": None})
     db.delete(location)
     db.commit()

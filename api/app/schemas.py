@@ -163,6 +163,10 @@ class BookDraft(BaseModel):
     provider: Optional[str] = None
 
 
+class ISBNLookupResponse(BaseModel):
+    drafts: list[BookDraft]
+
+
 # ---------- Export / Import ----------
 
 class CoverExport(BaseModel):

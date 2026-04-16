@@ -26,6 +26,9 @@ export default function Layout() {
           <Link to="/add" className="btn btn-secondary" title="Add book manually">
             + Add
           </Link>
+          <Link to="/settings" className="btn btn-secondary" title="Settings">
+            ⚙️
+          </Link>
           <ThemeToggle />
         </div>
       </header>

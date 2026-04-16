@@ -1,7 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { createBook, getBook, getLocations, lookupIsbn, updateBook, uploadCover } from '../api/client';
-import type { Book, BookCreate, Location } from '../types';
+import { createBook, getBook, getLocations, lookupIsbn, updateBook, uploadCover, uploadCoverFromUrl } from '../api/client';
+import type { Book, BookCreate, BookDraft, ISBNLookupResponse, Location } from '../types';
+
+const LOOKUP_FIELDS = ['title', 'authors', 'isbn13', 'isbn10', 'publisher', 'published_year', 'language'] as const;
+
+type LookupField = (typeof LOOKUP_FIELDS)[number];
+
+const LOOKUP_FIELD_LABELS: Record<LookupField, string> = {
+  title: 'Title',
+  authors: 'Authors',
+  isbn13: 'ISBN-13',
+  isbn10: 'ISBN-10',
+  publisher: 'Publisher',
+  published_year: 'Published Year',
+  language: 'Language',
+};
+
+const PROVIDER_LABELS: Record<string, string> = {
+  google_books: 'Google Books',
+  open_library: 'Open Library',
+};
 
 export default function AddEditBookPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +56,9 @@ export default function AddEditBookPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrlFromLookup, setCoverUrlFromLookup] = useState('');
   const [providerRawJson, setProviderRawJson] = useState<Record<string, unknown> | null>(null);
+  const [lookupDrafts, setLookupDrafts] = useState<BookDraft[]>([]);
+  const [fieldSource, setFieldSource] = useState<Record<LookupField, number | 'manual'>>({});
+  const [coverSelection, setCoverSelection] = useState('');
 
   useEffect(() => {
     getLocations().then(setLocations).catch(console.error);
@@ -80,25 +102,66 @@ export default function AddEditBookPage() {
     setLookupLoading(true);
     setError('');
     try {
-      const draft = await lookupIsbn(target);
+      const response = await lookupIsbn(target);
+      const drafts = response.drafts || [];
+      if (drafts.length === 0) {
+        throw new Error('No metadata found for this ISBN. You can add the book manually.');
+      }
+
+      const nextForm = { ...form } as Record<string, string | number | null>;
+      const nextFieldSource: Record<LookupField, number | 'manual'> = {};
+      LOOKUP_FIELDS.forEach((field) => {
+        const sourceIndex = drafts.findIndex((draft) => draft[field] != null && draft[field] !== '');
+        if (sourceIndex >= 0) {
+          nextFieldSource[field] = sourceIndex;
+          nextForm[field] = drafts[sourceIndex][field] as string | number;
+        }
+      });
+
       setForm((prev) => ({
         ...prev,
-        title: draft.title || prev.title,
-        authors: draft.authors || prev.authors,
-        isbn13: draft.isbn13 || prev.isbn13 || '',
-        isbn10: draft.isbn10 || prev.isbn10 || '',
-        publisher: draft.publisher || prev.publisher || '',
-        published_year: draft.published_year || prev.published_year,
-        language: draft.language || prev.language || '',
+        title: nextForm.title as string,
+        authors: nextForm.authors as string,
+        isbn13: nextForm.isbn13 as string,
+        isbn10: nextForm.isbn10 as string,
+        publisher: nextForm.publisher as string,
+        published_year: nextForm.published_year as number | undefined,
+        language: nextForm.language as string,
       }));
-      if (draft.cover_url) setCoverUrlFromLookup(draft.cover_url);
-      if (draft.provider_raw_json) setProviderRawJson(draft.provider_raw_json);
-      setSuccess('Metadata loaded from ' + (draft.provider || 'provider'));
+      setFieldSource(nextFieldSource);
+      setLookupDrafts(drafts);
+
+      const selectedCover = drafts.find((draft) => draft.cover_url) ?? drafts[0];
+      if (selectedCover?.cover_url) {
+        setCoverUrlFromLookup(selectedCover.cover_url);
+        setCoverSelection(selectedCover.cover_url);
+      }
+
+      setProviderRawJson({ providers: drafts.map((draft) => ({ provider: draft.provider, raw: draft.provider_raw_json })) });
+      setSuccess('Metadata loaded from multiple providers');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ISBN lookup failed');
     } finally {
       setLookupLoading(false);
     }
+  };
+
+  const selectFieldSource = (field: LookupField, value: string) => {
+    if (value === 'manual') {
+      setFieldSource((prev) => ({ ...prev, [field]: 'manual' }));
+      return;
+    }
+    const index = Number(value);
+    const draft = lookupDrafts[index];
+    if (!draft) return;
+    const fieldValue = draft[field];
+    setFieldSource((prev) => ({ ...prev, [field]: index }));
+    setForm((prev) => ({ ...prev, [field]: fieldValue ?? prev[field] }));
+  };
+
+  const handleCoverSelection = (url: string) => {
+    setCoverSelection(url);
+    setCoverUrlFromLookup(url);
   };
 
   const handleChange = (field: keyof BookCreate, value: string | number | null) => {
@@ -137,14 +200,9 @@ export default function AddEditBookPage() {
       if (coverFile) {
         await uploadCover(savedBook.id, coverFile);
       } else if (coverUrlFromLookup && !isEdit) {
-        // Download cover from lookup URL via API proxy or direct
+        // Download cover server-side to bypass CORS restrictions
         try {
-          const resp = await fetch(coverUrlFromLookup);
-          if (resp.ok) {
-            const blob = await resp.blob();
-            const file = new File([blob], 'cover.jpg', { type: blob.type });
-            await uploadCover(savedBook.id, file);
-          }
+          await uploadCoverFromUrl(savedBook.id, coverUrlFromLookup);
         } catch {
           // Cover download failed, proceed without cover
         }
@@ -185,6 +243,71 @@ export default function AddEditBookPage() {
             >
               {lookupLoading ? 'Looking up…' : 'Lookup'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {lookupDrafts.length > 0 && !isEdit && (
+        <div className="card mb-16">
+          <div className="flex-between mb-12">
+            <div>
+              <h2 style={{ marginBottom: 4 }}>Choose metadata per field</h2>
+              <p className="text-secondary">Select the best value from each provider before saving.</p>
+            </div>
+          </div>
+
+          {LOOKUP_FIELDS.map((field) => (
+            <div className="form-group" key={field}>
+              <label>{LOOKUP_FIELD_LABELS[field]}</label>
+              <select
+                value={fieldSource[field] ?? 'manual'}
+                onChange={(e) => selectFieldSource(field, e.target.value)}
+              >
+                <option value="manual">Keep current / manual value</option>
+                {lookupDrafts.map((draft, index) => {
+                  const sourceValue = draft[field];
+                  if (sourceValue == null || sourceValue === '') {
+                    return null;
+                  }
+                  return (
+                    <option key={`${field}-${index}`} value={index}>
+                      From {PROVIDER_LABELS[draft.provider ?? ''] || draft.provider || `Source ${index + 1}`} — {String(sourceValue)}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          ))}
+
+          <div className="form-group">
+            <label>Cover from provider</label>
+            <div className="lookup-cover-list">
+              {lookupDrafts.map((draft, index) =>
+                draft.cover_url ? (
+                  <label key={`cover-${index}`} className="lookup-cover-item">
+                    <input
+                      type="radio"
+                      name="cover-selection"
+                      value={draft.cover_url}
+                      checked={coverSelection === draft.cover_url}
+                      onChange={() => handleCoverSelection(draft.cover_url ?? '')}
+                    />
+                    <span>{PROVIDER_LABELS[draft.provider ?? ''] || draft.provider || `Source ${index + 1}`}</span>
+                    <img src={draft.cover_url} alt={`Cover ${index + 1}`} className="lookup-cover-preview" />
+                  </label>
+                ) : null,
+              )}
+              <label className="lookup-cover-item">
+                <input
+                  type="radio"
+                  name="cover-selection"
+                  value=""
+                  checked={!coverSelection}
+                  onChange={() => handleCoverSelection('')}
+                />
+                <span>No cover</span>
+              </label>
+            </div>
           </div>
         </div>
       )}

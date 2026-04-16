@@ -160,3 +160,13 @@ def lookup_isbn(isbn: str) -> Optional[BookDraft]:
     if draft and draft.title:
         return draft
     return None
+
+
+def lookup_all_providers(isbn: str) -> list[BookDraft]:
+    """Query all providers and return every non-empty result."""
+    results: list[BookDraft] = []
+    for lookup_fn in (lookup_google_books, lookup_open_library):
+        draft = lookup_fn(isbn)
+        if draft and draft.title:
+            results.append(draft)
+    return results

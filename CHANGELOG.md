@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0+5] - 2025-07-17
+### Added
+- Settings page with location management (create, edit, delete)
+- Gear icon in header navigation for Settings access
+- Server-side cover download proxy endpoint (`POST /api/books/{id}/cover-from-url`)
+- `updateLocation` and `deleteLocation` API client functions
+### Fixed
+- Google Books covers not downloading due to browser CORS restrictions (now downloaded server-side)
+- Location delete now safely unlinks books before removing the location
+
 ## [0.2.0+4] - 2026-04-15
 ### Added
 - HTTPS support with auto-generated self-signed certificate for camera access from remote devices

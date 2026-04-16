@@ -2,12 +2,13 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, UploadFile
+from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Book, Cover
 from app.schemas import BookCreate, BookResponse, BookUpdate
-from app.services.cover import process_cover
+from app.services.cover import download_cover, process_cover
 from app.services.search import find_by_isbn, find_soft_duplicates, search_books
 from app.utils.isbn import is_valid_isbn10, is_valid_isbn13, normalize_isbn
 
@@ -139,3 +140,41 @@ def upload_cover(book_id: int, file: UploadFile, db: Session = Depends(get_db)):
 
     db.commit()
     logger.info("cover_stored", extra={"book_id": book_id, "checksum": checksum, "width": width, "height": height})
+
+
+class CoverFromUrlRequest(BaseModel):
+    url: str
+
+
+@router.post("/{book_id}/cover-from-url", status_code=204)
+def upload_cover_from_url(book_id: int, payload: CoverFromUrlRequest, db: Session = Depends(get_db)):
+    book = db.get(Book, book_id)
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    raw = download_cover(payload.url)
+    if not raw:
+        raise HTTPException(status_code=502, detail="Failed to download cover from URL")
+
+    data, width, height, checksum = process_cover(raw)
+
+    existing = db.query(Cover).filter(Cover.book_id == book_id).first()
+    if existing:
+        existing.data = data
+        existing.mime_type = "image/jpeg"
+        existing.checksum = checksum
+        existing.width = width
+        existing.height = height
+    else:
+        cover = Cover(
+            book_id=book_id,
+            data=data,
+            mime_type="image/jpeg",
+            checksum=checksum,
+            width=width,
+            height=height,
+        )
+        db.add(cover)
+
+    db.commit()
+    logger.info("cover_from_url_stored", extra={"book_id": book_id, "url": payload.url, "checksum": checksum})
