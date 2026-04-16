@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { createBook, getBook, getLocations, lookupIsbn, updateBook, uploadCover, uploadCoverFromUrl } from '../api/client';
-import type { Book, BookCreate, BookDraft, ISBNLookupResponse, Location } from '../types';
+import type { Book, BookCreate, BookDraft, Location } from '../types';
 
 const LOOKUP_FIELDS = ['title', 'authors', 'isbn13', 'isbn10', 'publisher', 'published_year', 'language'] as const;
 
@@ -57,7 +57,7 @@ export default function AddEditBookPage() {
   const [coverUrlFromLookup, setCoverUrlFromLookup] = useState('');
   const [providerRawJson, setProviderRawJson] = useState<Record<string, unknown> | null>(null);
   const [lookupDrafts, setLookupDrafts] = useState<BookDraft[]>([]);
-  const [fieldSource, setFieldSource] = useState<Record<LookupField, number | 'manual'>>({});
+  const [fieldSource, setFieldSource] = useState<Partial<Record<LookupField, number | 'manual'>>>({});
   const [coverSelection, setCoverSelection] = useState('');
 
   useEffect(() => {
@@ -108,8 +108,8 @@ export default function AddEditBookPage() {
         throw new Error('No metadata found for this ISBN. You can add the book manually.');
       }
 
-      const nextForm = { ...form } as Record<string, string | number | null>;
-      const nextFieldSource: Record<LookupField, number | 'manual'> = {};
+      const nextForm = { ...form } as Record<string, unknown>;
+      const nextFieldSource: Partial<Record<LookupField, number | 'manual'>> = {};
       LOOKUP_FIELDS.forEach((field) => {
         const sourceIndex = drafts.findIndex((draft) => draft[field] != null && draft[field] !== '');
         if (sourceIndex >= 0) {

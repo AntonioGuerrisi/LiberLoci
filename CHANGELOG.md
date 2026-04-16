@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.3.0+5] - 2025-07-17
+## [0.3.0+6] - 2026-04-16
 ### Added
 - Settings page with location management (create, edit, delete)
 - Gear icon in header navigation for Settings access
@@ -8,7 +8,8 @@
 - `updateLocation` and `deleteLocation` API client functions
 ### Fixed
 - Google Books covers not downloading due to browser CORS restrictions (now downloaded server-side)
-- Location delete now safely unlinks books before removing the location
+- Location delete now safely unlinks books before removing
+- TypeScript build errors (unused imports, incorrect type annotations) the location
 
 ## [0.2.0+4] - 2026-04-15
 ### Added

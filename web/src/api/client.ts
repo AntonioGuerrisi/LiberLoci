@@ -1,4 +1,4 @@
-import type { Book, BookCreate, BookDraft, ISBNLookupResponse, Location, LocationCreate } from '../types';
+import type { Book, BookCreate, ISBNLookupResponse, Location, LocationCreate } from '../types';
 
 const BASE = '/api';
 
