@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0+8] - 2026-04-28
+### Improved
+- ISBN lookup field triggers lookup on Enter key press
+
+## [0.4.0+7] - 2026-04-28
+### Added
+- WorldCat xISBN provider for ISBN metadata lookup (free, no API key, good Italian book coverage)
+- BNF (Bibliothèque nationale de France) provider via SRU/Dublin Core XML (free, good European coverage)
+- Fallback chain updated: Google Books → WorldCat → BNF → Open Library
+### Fixed
+- Google Books API key (`GOOGLE_BOOKS_API_KEY`) was configured but never passed to API calls; now included in requests when set, increasing the daily quota significantly
+
 ## [0.3.0+6] - 2026-04-16
 ### Added
 - Settings page with location management (create, edit, delete)

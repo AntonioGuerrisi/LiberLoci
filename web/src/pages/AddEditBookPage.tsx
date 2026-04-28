@@ -233,6 +233,7 @@ export default function AddEditBookPage() {
                 placeholder="Enter ISBN to auto-fill metadata…"
                 value={isbnInput}
                 onChange={(e) => setIsbnInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleLookup(); }}
               />
             </div>
             <button

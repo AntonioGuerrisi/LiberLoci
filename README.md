@@ -9,7 +9,7 @@ LiberLoci is a responsive web app to catalogue your personal book collection. It
 - **ISBN barcode scanning** via phone camera — instant owned/not-owned feedback with location
 - **Search** by title, author, or ISBN (case-insensitive, contains matching)
 - **Manual add/edit** when metadata is missing
-- **ISBN lookup** via Google Books and Open Library (with automatic fallback)
+- **ISBN lookup** via Google Books, WorldCat xISBN, BNF and Open Library (with automatic fallback chain)
 - **Location tree** — Room → Shelf → Level → browse your books physically
 - **Cover management** — auto-download from providers, resize to JPEG (max 900px)
 - **Tags** and **reading status** tracking
@@ -143,6 +143,37 @@ ruff format .
 cd web
 npm run lint
 ```
+
+## Configuration
+
+### Google Books API Key
+
+By default, LiberLoci queries Google Books without an API key. The unauthenticated quota is limited to roughly **1,000 requests per day** per IP address. To increase this limit, obtain a free API key from the [Google Cloud Console](https://console.cloud.google.com/):
+
+1. Create or open a project in the Google Cloud Console.
+2. Enable the **Books API** under *APIs & Services → Library*.
+3. Create an **API Key** under *APIs & Services → Credentials*.
+4. Set the key in your environment.
+
+**Docker Compose** — add the variable to `docker-compose.yml` under the `api` service, or create a `.env` file in the project root:
+
+```env
+GOOGLE_BOOKS_API_KEY=your_key_here
+```
+
+**Local development** — export the variable before starting the API server:
+
+```powershell
+# Windows PowerShell
+$env:GOOGLE_BOOKS_API_KEY="your_key_here"
+```
+
+```bash
+# macOS / Linux
+export GOOGLE_BOOKS_API_KEY=your_key_here
+```
+
+When the key is set, it is automatically included in every Google Books request. All other metadata providers (WorldCat xISBN, BNF, Open Library) are free and require no registration.
 
 ## Database Backup & Restore
 
