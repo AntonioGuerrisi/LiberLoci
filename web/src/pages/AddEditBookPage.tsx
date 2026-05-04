@@ -234,6 +234,7 @@ export default function AddEditBookPage() {
                 value={isbnInput}
                 onChange={(e) => setIsbnInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleLookup(); }}
+                autoFocus
               />
             </div>
             <button

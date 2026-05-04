@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.1+9] - 2026-05-04
+### Improved
+- ISBN input field is automatically focused when opening the Add Book page
+
 ## [0.4.0+8] - 2026-04-28
 ### Improved
 - ISBN lookup field triggers lookup on Enter key press
