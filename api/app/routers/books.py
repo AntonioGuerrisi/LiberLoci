@@ -17,8 +17,12 @@ router = APIRouter(prefix="/api/books", tags=["books"])
 
 
 @router.get("", response_model=list[BookResponse])
-def list_books(query: Optional[str] = Query(None, alias="query"), db: Session = Depends(get_db)):
-    books = search_books(db, query or "")
+def list_books(
+    query: Optional[str] = Query(None, alias="query"),
+    location_id: Optional[int] = Query(None, alias="location_id"),
+    db: Session = Depends(get_db),
+):
+    books = search_books(db, query or "", location_id=location_id)
     return [BookResponse.from_book(b) for b in books]
 
 

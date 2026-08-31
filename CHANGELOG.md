@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.2+10] - 2026-09-01
+### Fixed
+- Fix homepage location filtering so shelf view shows books correctly and is no longer limited by the backend search result size.
+
 ## [0.4.1+9] - 2026-05-04
 ### Improved
 - ISBN input field is automatically focused when opening the Add Book page

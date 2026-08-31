@@ -10,17 +10,15 @@ from app.utils.isbn import looks_like_isbn, normalize_isbn
 logger = logging.getLogger(__name__)
 
 
-def search_books(db: Session, query: str, limit: int = 50) -> list[Book]:
+def search_books(db: Session, query: str, location_id: Optional[int] = None, limit: int = 50) -> list[Book]:
     """Search books by title, authors, or ISBN. Case-insensitive, contains matching."""
     query = query.strip()
+    base_query = db.query(Book).options(joinedload(Book.location), joinedload(Book.cover))
+    if location_id is not None:
+        base_query = base_query.filter(Book.location_id == location_id)
+
     if not query:
-        return (
-            db.query(Book)
-            .options(joinedload(Book.location), joinedload(Book.cover))
-            .order_by(Book.title)
-            .limit(limit)
-            .all()
-        )
+        return base_query.order_by(Book.title).all()
 
     results: list[Book] = []
     normalized = normalize_isbn(query)
@@ -28,8 +26,7 @@ def search_books(db: Session, query: str, limit: int = 50) -> list[Book]:
     # If looks like ISBN, try exact ISBN match first
     if looks_like_isbn(query):
         isbn_match = (
-            db.query(Book)
-            .options(joinedload(Book.location), joinedload(Book.cover))
+            base_query
             .filter(or_(Book.isbn13 == normalized, Book.isbn10 == normalized))
             .all()
         )
@@ -41,8 +38,7 @@ def search_books(db: Session, query: str, limit: int = 50) -> list[Book]:
     # Text search on title and authors
     pattern = f"%{query}%"
     text_matches = (
-        db.query(Book)
-        .options(joinedload(Book.location), joinedload(Book.cover))
+        base_query
         .filter(
             or_(
                 func.lower(Book.title).like(func.lower(pattern)),

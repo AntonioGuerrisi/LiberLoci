@@ -13,9 +13,13 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 // Books
-export const searchBooks = (query: string) =>
-  request<Book[]>(`${BASE}/books?query=${encodeURIComponent(query)}`);
-
+export const searchBooks = (query: string, locationId?: number) => {
+  const params = new URLSearchParams();
+  if (query) params.append('query', query);
+  if (locationId !== undefined && locationId !== null) params.append('location_id', String(locationId));
+  const url = `${BASE}/books${params.toString() ? `?${params.toString()}` : ''}`;
+  return request<Book[]>(url);
+}
 export const getBookByIsbn = (isbn: string) =>
   request<Book>(`${BASE}/books/by-isbn/${encodeURIComponent(isbn)}`);
 
